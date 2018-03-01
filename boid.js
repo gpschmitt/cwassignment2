@@ -130,64 +130,20 @@ Boid.prototype.collisionDelta = function () {
     var up = this.willCollideTop();
     var down = this.willCollideBottom();
 
-    // Correct for possible collisions
-    if (left) {
-        //console.log("left");
-        if (this.facingUp()) {
-            deltaTheta = -maxDifference;
-        } else if (this.facingDown()) {
-            deltaTheta = maxDifference;
-        } else {
-            if (randomInteger(0, 1)) {
-                deltaTheta = -maxDifference;
-            } else {
-                deltaTheta = maxDifference;
-            }
-        }
-    }
-    
-    if (right) {
-        //console.log("right");
-        if (this.facingUp()) {
-            deltaTheta = maxDifference;
-        } else if (this.facingDown()) {
+    if ((left && this.facingUp()) || (right && this.facingDown()) || 
+        (up && this.facingRight()) || (down && this.facingLeft())) { 
+        // Should turn clockwise, so subtract from theta
+        deltaTheta = -maxDifference;
+    } else if ((left && this.facingDown()) || (right && this.facingUp()) ||
+               (up && this.facingLeft()) || (down && this.facingRight())) {
+        // Should turn counter-clockwise, so add to theta
+        deltaTheta = maxDifference;
+    } else {
+        // Not already facing in any particular direction, so pick one at random
+        if (randomInteger(0, 1)) {
             deltaTheta = -maxDifference;
         } else {
-            if (randomInteger(0, 1)) {
-                deltaTheta = -maxDifference;
-            } else {
-                deltaTheta = maxDifference;
-            }
-        }
-    }
-
-    if (up) {
-        //console.log("up");
-        if (this.facingLeft()) {
             deltaTheta = maxDifference;
-        } else if (this.facingRight()) {
-            deltaTheta = -maxDifference;
-        } else {
-            if (randomInteger(0, 1)) {
-                deltaTheta = -maxDifference;
-            } else {
-                deltaTheta = maxDifference;
-            }
-        }
-    }
-    
-    if (down) {
-        //console.log("down");
-        if (this.facingLeft()) {
-            deltaTheta = -maxDifference;
-        } else if (this.facingRight()) {
-            deltaTheta = maxDifference;
-        } else {
-            if (randomInteger(0, 1)) {
-                deltaTheta = -maxDifference;
-            } else {
-                deltaTheta = maxDifference;
-            }
         }
     }
 
@@ -228,13 +184,7 @@ Boid.prototype.flockDelta = function () {
         // Shift angles back
         averageAngle -= Math.PI;
 
-        deltaTheta = averageAngle - this.angle;
-
-        if (deltaTheta > Math.PI) {
-            deltaTheta -= 2 * Math.PI;
-        } else if (deltaTheta < -Math.PI) {
-            deltaTheta += 2 * Math.PI;
-        }
+        deltaTheta = smallestDeltaTheta(this.angle, averageAngle);
 
         // Take into account the independence of the boid
         maxDifference *= INDEPENDENCE_LEVELS - this.independence;

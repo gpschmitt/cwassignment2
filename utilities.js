@@ -50,8 +50,44 @@ function radiansToDegrees(radians) {
 
 /*
  * Converts degrees to radians.
- * For example, degreesToRadians(0) returns 0, degreesToRadians(180) returns Math.pi.
+ * For example, degreesToRadians(0) returns 0, degreesToRadians(180) returns pi.
  */
 function degreesToRadians(degrees) {
     return degrees * (Math.PI / 180);
+}
+
+/*
+ * Returns true if theta1 and theta2 are more or less opposite angles.
+ * That is, if the angular distance between theta1 and theta2 is approximately 
+ * pi, returns true. Here, the use of "approximately" and "more or less" means 
+ * within 0.1 radians of being truly opposite. 
+ */
+function oppositeAngles(theta1, theta2) {
+    return Math.abs(Math.abs(theta1 - theta2) - Math.PI) < 0.1;
+}
+/*
+ * Returns the shortest angular distance between srcTheta and dstTheta.
+ * In other words, (srcTheta + smallestDeltaTheta(srcTheta, dstTheta)) = dstTheta
+ * Note: the output is purposefully non-deterministic if ||dstTheta-srcTheta|-pi| < 0.1
+ *
+ * For example, smallestDeltaTheta(pi-1, -pi+1) would return 2. 
+ */
+function smallestDeltaTheta(srcTheta, dstTheta) {
+    if (oppositeAngles(srcTheta, dstTheta)) {
+        if (randomInteger(0, 1)) {
+            result = Math.PI;
+        } else {
+            result = -Math.PI;
+        }
+    } else {
+        var result = dstTheta - srcTheta;
+
+        if (result > Math.PI) {
+            result -= 2 * Math.PI;
+        } else if (result < -Math.PI) {
+            result += 2 * Math.PI;
+        }
+    }
+
+    return result;
 }
