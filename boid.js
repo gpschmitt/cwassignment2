@@ -44,7 +44,6 @@ function Boid(game) {
     this.size = randomFloat(MIN_SIZE, MAX_SIZE);
 
     this.angle = randomFloat(-Math.PI, Math.PI);
-    console.log("Starting angle: " + this.angle);
 
     this.speed = randomFloat(MIN_SPEED, MAX_SPEED); 
 
@@ -117,8 +116,8 @@ Boid.prototype.willCollideBottom = function () {
 }
 
 Boid.prototype.willCollide = function () {
-    return this.willCollideLeft || this.willCollideRight ||
-           this.willCollideTop || this.willCollideBottom;
+    return this.willCollideLeft() || this.willCollideRight() ||
+           this.willCollideTop() || this.willCollideBottom();
 }
 
 Boid.prototype.collisionDelta = function () {
@@ -208,40 +207,43 @@ Boid.prototype.flockDelta = function () {
 
     var maxDifference = MAX_RADIANS_PER_SECOND * this.game.clockTick;
     
-    if (!collisionCorrection) {
-        this.game.entities.forEach(function (otherBoid) {
-            if (otherBoid !== thisBoid && thisBoid.canSee(otherBoid)) {
-                visibleBoids++;
-                averageX += otherBoid.x;
-                averageY += otherBoid.y;
-                // Shift angles from (-pi, pi] to (0, 2*pi]
-                averageAngle += otherBoid.angle + Math.PI;
-            }
-        });
+    this.game.entities.forEach(function (otherBoid) {
+        if (otherBoid !== thisBoid && thisBoid.canSee(otherBoid)) {
+            visibleBoids++;
 
-        if (visibleBoids > 0) {
-            averageX /= visibleBoids;
-            averageY /= visibleBoids;
-            averageAngle /= visibleBoids;
+            // Add to average sum
+            averageX += otherBoid.x;
+            averageY += otherBoid.y;
+            // Shift angles from (-pi, pi] to (0, 2*pi]
+            averageAngle += otherBoid.angle + Math.PI;
+        }
+    });
 
-            // Shift angles back
-            averageAngle -= Math.PI;
+    if (visibleBoids > 0) {
+        // Complete average
+        averageX /= visibleBoids;
+        averageY /= visibleBoids;
+        averageAngle /= visibleBoids;
 
+        // Shift angles back
+        averageAngle -= Math.PI;
 
-            deltaTheta = averageAngle - this.angle;
-            if (deltaTheta > Math.PI) {
-                deltaTheta -= 2 * Math.PI;
-            } else if (deltaTheta < -Math.PI) {
-                deltaTheta += 2 * Math.PI;
-            }
+        deltaTheta = averageAngle - this.angle;
 
-            var dependenceFactor = INDEPENDENCE_LEVELS - this.independence;
-            maxDifference *= dependenceFactor;
-            if (deltaTheta > maxDifference) {
-                deltaTheta = maxDifference;
-            } else if (deltaTheta < -maxDifference) {
-                deltaTheta = -maxDifference;
-            }
+        if (deltaTheta > Math.PI) {
+            deltaTheta -= 2 * Math.PI;
+        } else if (deltaTheta < -Math.PI) {
+            deltaTheta += 2 * Math.PI;
+        }
+
+        // Take into account the independence of the boid
+        maxDifference *= INDEPENDENCE_LEVELS - this.independence;
+
+        // Make sure delta is no greater than maxDifference
+        if (deltaTheta > maxDifference) {
+            deltaTheta = maxDifference;
+        } else if (deltaTheta < -maxDifference) {
+            deltaTheta = -maxDifference;
         }
     }
 

@@ -1,4 +1,4 @@
-const STARTING_BOIDS = 250;
+const STARTING_BOIDS = 200;
 
 
 /*
